@@ -21,6 +21,8 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
     private final String name;
     /**
      * Bean的声明类型
+     * 对于 @Component 定义的Bean，它的声明类型就是其Class本身
+     * 对于 @Bean 定义的Bean，它的声明类型与实际类型不一定是同一类型
      */
     private final Class<?> beanClass;
     /**
@@ -28,15 +30,15 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
      */
     private Object instance = null;
     /**
-     * 构造方法/null
+     * 构造方法/null，包括私有/默认构造函数
      */
     private final Constructor<?> constructor;
     /**
-     * 工厂方法名称/null
+     * 工厂方法名称/null，通常为 "XyzConfiguration"
      */
     private final String factoryName;
     /**
-     * 工厂方法/null
+     * 工厂方法/null，通常为 @Bean 标注的一个方法
      */
     private final Method factoryMethod;
     /**
@@ -83,6 +85,7 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
                           String initMethodName, String destroyMethodName, Method initMethod, Method destroyMethod) {
         this.name = name;
         this.beanClass = beanClass;
+        // 构造函数，包括私有/默认构造函数
         this.constructor = constructor;
         this.factoryName = null;
         this.factoryMethod = null;
@@ -111,7 +114,9 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
         this.name = name;
         this.beanClass = beanClass;
         this.constructor = null;
+        // 通常为 "XyzConfiguration"
         this.factoryName = factoryName;
+        // 通常为 @Bean 标注的一个方法
         this.factoryMethod = factoryMethod;
         this.order = order;
         this.primary = primary;
@@ -120,7 +125,9 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
     }
 
     /**
-     * 设置初始方法和销毁方法
+     * 设置初始方法和销毁方法，存储在BeanDefinition的方法名称与方法，其中总有一个为null
+     * 对于构造方法构建，初始/销毁方法名称必为null
+     * 对于工厂方法构建，初始/销毁方法必为null
      *
      * @param initMethodName    初始方法名称
      * @param destroyMethodName 销毁方法名称
@@ -155,7 +162,7 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
     }
 
     /**
-     * 获取工厂方法名称
+     * 获取工厂方法名称，通常为 "XyzConfiguration"
      *
      * @return 工厂方法名称
      */
@@ -165,7 +172,7 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
     }
 
     /**
-     * 获取工厂方法对象
+     * 获取工厂方法对象，通常为 @Bean 标注的一个方法
      *
      * @return 工厂方法对象
      */
@@ -225,6 +232,8 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
 
     /**
      * 获取Bean的声明类型
+     * 对于 @Component 定义的Bean，它的声明类型就是其Class本身
+     * 对于 @Bean 定义的Bean，它的声明类型与实际类型不一定是同一类型
      *
      * @return Bean的声明类型
      */

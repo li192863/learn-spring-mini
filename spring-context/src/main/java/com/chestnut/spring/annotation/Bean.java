@@ -18,7 +18,6 @@ public @interface Bean {
 
     /**
      * Destroy method.
-     * @return
      */
     String destroyMethod() default "";
 }

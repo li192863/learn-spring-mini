@@ -85,30 +85,40 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 扫描配置类 configClass 中的所有 Bean 类的类名
         final Set<String> beanClassNames = scanForClassNames(configClass);
 
-        // 创建 Bean 的定义
+        // 此时所有 要加载的类 均已知
+
+        // 创建所有 Bean 的定义
+        // 对于 @Component 定义的Bean，名称为注解指定的 value 或 小驼峰(类名)，声明类型为Class本身
+        // 对于 @Bean 定义的Bean，名称为注解指定的 value 或 方法名，声明类型为@Bean方法签名中的返回值类型
         this.beans = createBeanDefinitions(beanClassNames);
 
-        // 创建 @Configuration 类型的 Bean
+        // 此时所有 Bean 均被定义
+
+        // 创建 @Configuration 类型的 Bean，先创建已保证后续 @Bean注解的Bean 的创建
         this.beans.values().stream()
                 // 过滤出具有 @Configuration 注解的 Bean 定义
                 .filter(this::isConfigurationDefinition)
                 .sorted()
                 .map(def -> {
-                    // 根据定义创建早期单例
+                    // 根据定义创建早期单例（不进行字段和方法级别的注入）
                     createBeanAsEarlySingleton(def);
                     return def.getName();
                 }).collect(Collectors.toList());
 
-        // 创建BeanPostProcessor类型的Bean
-        this.beanPostProcessors = this.beans.values().stream()
+        // 创建 BeanPostProcessor 类型的Bean，先创建已保证 Bean 可被后处理
+        List<BeanPostProcessor> processors = this.beans.values().stream()
                 // 过滤出为 BeanPostProcessor 的 Bean 定义
                 .filter(this::isBeanPostProcessorDefinition)
                 .sorted()
+                // 根据定义创建早期单例（不进行字段和方法级别的注入）
                 .map(def -> (BeanPostProcessor) createBeanAsEarlySingleton(def))
                 .toList();
+        this.beanPostProcessors.addAll(processors);
 
         // 创建其他普通 Bean
         createNormalBeans();
+
+        // 此时所有 Bean 均被创建，且各个 Bean 的 instance 均已被设置
 
         // 通过字段和set方法注入依赖
         this.beans.values().forEach(this::injectBean);
@@ -140,7 +150,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      */
     public List<BeanDefinition> findBeanDefinitions(Class<?> type) {
         return this.beans.values().stream()
-                // 检查requiredType是否为def.getBeanClass()的父类，若可以则保留
+                // 检查type是否为def.getBeanClass()（即def的声明类型）的父类，若可以则保留
                 .filter(def -> type.isAssignableFrom(def.getBeanClass()))
                 .sorted()
                 .collect(Collectors.toList());
@@ -171,7 +181,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         if (def == null) {
             return null;
         }
-        // 检查requiredType是否为def.getBeanClass()的父类
+        // 检查requiredType是否为def.getBeanClass()（即def的声明类型）的父类
         if (!requiredType.isAssignableFrom(def.getBeanClass())) {
             throw new BeanNotOfRequiredTypeException(String.format("Autowire required type '%s' but bean '%s' has actual type '%s'.", requiredType.getName(), name, def.getBeanClass().getName()));
         }
@@ -200,7 +210,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 流式操作筛选出标记了 @Primary 注解的 Bean 定义，将它们存储在列表 primaryDefs 中
         List<BeanDefinition> primaryDefs = defs.stream()
                 .filter(BeanDefinition::isPrimary)
-                .collect(Collectors.toList());
+                .toList();
         // 只存在一个标记了 @Primary 注解的 Bean 定义
         if (primaryDefs.size() == 1) {
             return primaryDefs.get(0);
@@ -384,13 +394,13 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         }
 
         // 查找@Import(Xyz.class)
-        // 获取配置类上的 Import 注解，Import 注解用于指定要导入的其他配置类
+        // 获取配置类上的 Import 注解，Import 注解用于指定要导入的其他类
         Import importConfig = configClass.getAnnotation(Import.class);
         // 如果 Import 注解不存在，则直接返回当前的类名集合
         if (importConfig == null) {
             return classNameSet;
         }
-        // 遍历 Import 注解中指定的要导入的其他配置类
+        // 遍历 Import 注解中指定的要导入的其他类
         for (Class<?> importConfigClass : importConfig.value()) {
             String importClassName = importConfigClass.getName();
             if (classNameSet.contains(importClassName)) {
@@ -407,6 +417,8 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
 
     /**
      * 根据扫描的ClassName创建Bean定义
+     * 对于 @Component 定义的Bean，名称为注解指定的 value 或 小驼峰(类名)，声明类型为Class本身
+     * 对于 @Bean 定义的Bean，名称为注解指定的 value 或 方法名，声明类型为@Bean方法签名中的返回值类型
      *
      * @param classNameSet 扫描到的类名集合
      * @return Bean定义集合
@@ -450,12 +462,15 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             // 创建一个新的 BeanDefinition 对象
             BeanDefinition def = new BeanDefinition(beanName,
                     clazz,
+                    // 构造函数，包括私有/默认构造函数
                     getSuitableConstructor(clazz),
                     getOrder(clazz),
                     clazz.isAnnotationPresent(Primary.class),
                     null,
                     null,
+                    // 类中找带有特定注解的方法（此处为找初始方法），若没有则返回null
                     ClassUtils.findAnnotationMethod(clazz, PostConstruct.class),
+                    // 类中找带有特定注解的方法（此处为找销毁方法），若没有则返回null
                     ClassUtils.findAnnotationMethod(clazz, PreDestroy.class));
             addBeanDefinitions(defs, def);
             logger.atDebug().log("define bean: {}", def);
@@ -471,7 +486,8 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     }
 
     /**
-     * 创建一个Bean，但不进行字段和方法级别的注入。如果创建的Bean不是Configuration或BeanPostProcessor，则在构造方法中注入的依赖Bean会自动创建。
+     * 创建一个Bean，但不进行字段和方法级别的注入。
+     * 如果创建的Bean不是Configuration或BeanPostProcessor，则在*构造方法中注入的依赖Bean*会自动创建。
      *
      * @param def Bean的定义
      * @return Bean的实例
@@ -495,6 +511,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         }
 
         // 获取创建 Bean 所需的参数
+        // 如果创建的Bean不是Configuration或BeanPostProcessor，则在*构造方法中注入的依赖Bean*会自动创建。
         final Parameter[] parameters = createFn.getParameters();
         final Annotation[][] parametersAnnos = createFn.getParameterAnnotations();
         Object[] args = new Object[parameters.length];
@@ -527,6 +544,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             final Class<?> type = param.getType();
             // 参数设置为查询的 @Value
             if (value != null) {
+                // 获取指定属性的值，并将其转换为当前参数的类型
                 args[i] = this.propertyResolver.getRequiredProperty(value.value(), type);
             }
             // 参数是@Autowired，查找依赖的BeanDefinition
@@ -535,7 +553,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 boolean required = autowired.value();
                 // 依赖的BeanDefinition
                 BeanDefinition dependsOnDef = name.isEmpty() ? findBeanDefinition(type) : findBeanDefinition(name, type);
-                // 检测required==true
+                // 检测required == true，注意 Bean 的定义应该存在，若不存在则报错
                 if (required && dependsOnDef == null) {
                     throw new BeanCreationException(String.format("Missing autowired bean with type '%s' when create bean '%s': %s.", type.getName(), def.getName(), def.getBeanClass().getName()));
                 }
@@ -543,7 +561,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                     // 获取依赖Bean实例
                     Object autowiredBeanInstance = dependsOnDef.getInstance();
                     // 当前依赖Bean尚未初始化，递归调用初始化该依赖Bean
-                    if (autowiredBeanInstance == null && !isConfiguration) {
+                    if (autowiredBeanInstance == null/* && !isConfiguration */) {
                         // 当前依赖Bean尚未初始化，递归调用初始化该依赖Bean
                         autowiredBeanInstance = createBeanAsEarlySingleton(dependsOnDef);
                     }
@@ -565,6 +583,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             }
         } else {
             // 用@Bean方法创建
+            // configInstance为配置类实例，此时配置类已完成创建，故正常情况下getBean不会报错
             Object configInstance = getBean(def.getFactoryName());
             try {
                 instance = def.getFactoryMethod().invoke(configInstance, args);
@@ -572,10 +591,12 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 throw new BeanCreationException(String.format("Exception when create bean '%s': %s", def.getName(), def.getBeanClass().getName()), e);
             }
         }
+        // 设置 Bean 定义的实例
         def.setInstance(instance);
 
-        // 调用BeanPostProcessor处理Bean
+        // 调用 BeanPostProcessor 处理Bean
         for (BeanPostProcessor processor : beanPostProcessors) {
+            // Bean 定义的实例已经构建完成（但还未注入依赖）
             Object processed = processor.postProcessBeforeInitialization(def.getInstance(), def.getName());
             if (processed == null) {
                 throw new BeanCreationException(String.format("PostBeanProcessor returns null when process bean '%s' by %s", def.getName(), processor));
@@ -619,6 +640,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 获取Bean实例，或被代理的原始实例
         Object beanInstance = getProxiedInstance(def);
         try {
+            // 为指定的Bean实例注入属性值，会传入def的def的声明类型
             injectProperties(def, def.getBeanClass(), beanInstance);
         } catch (ReflectiveOperationException e) {
             throw new BeanCreationException(e);
@@ -883,10 +905,14 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 throw new BeanDefinitionException("@Bean method " + clazz.getName() + "." + method.getName() + " must not return void.");
             }
 
+            // 使用 ClassUtils.getBeanName() 方法根据方法获取 Bean 的名称
+            String beanName = ClassUtils.getBeanName(method);
             // 创建一个新的 BeanDefinition 对象
-            BeanDefinition def = new BeanDefinition(ClassUtils.getBeanName(method),
+            BeanDefinition def = new BeanDefinition(beanName,
                     beanClass,
+                    // 通常为 "XyzConfiguration"
                     factoryBeanName,
+                    // 通常为 @Bean 标注的一个方法
                     method,
                     getOrder(method),
                     method.isAnnotationPresent(Primary.class),
@@ -947,6 +973,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * @return 如果是配置类的定义，则返回true；否则返回false
      */
     private boolean isConfigurationDefinition(BeanDefinition def) {
+        // 检查def的声明类型中是否包含 @Configuration 注解
         return ClassUtils.findAnnotation(def.getBeanClass(), Configuration.class) != null;
     }
 
@@ -957,6 +984,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * @return 如果是配置类的定义，则返回true；否则返回false
      */
     private boolean isBeanPostProcessorDefinition(BeanDefinition def) {
+        // 检查def的声明类型中是否为 BeanPostProcessor 子类
         return BeanPostProcessor.class.isAssignableFrom(def.getBeanClass());
     }
 }
