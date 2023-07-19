@@ -126,8 +126,8 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
 
     /**
      * 设置初始方法和销毁方法，存储在BeanDefinition的方法名称与方法，其中总有一个为null
-     * 对于构造方法构建，初始/销毁方法名称必为null
-     * 对于工厂方法构建，初始/销毁方法必为null
+     * 对于构造方法构建，初始/销毁方法名称必为null，可能存在初始/销毁方法
+     * 对于工厂方法构建，初始/销毁方法必为null，可能存在初始/销毁方法名称
      *
      * @param initMethodName    初始方法名称
      * @param destroyMethodName 销毁方法名称

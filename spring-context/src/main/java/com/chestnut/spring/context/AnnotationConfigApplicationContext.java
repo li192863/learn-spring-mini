@@ -46,7 +46,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      */
     protected final Map<String, BeanDefinition> beans;
     /**
-     * 后处理器列表
+     * 后处理器列表，后处理器用于替换Bean
      * 在Bean创建过程中，会调用这些后处理器对Bean进行额外的处理，以满足特定需求
      */
     private List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
@@ -105,7 +105,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                     return def.getName();
                 }).collect(Collectors.toList());
 
-        // 创建 BeanPostProcessor 类型的Bean，先创建已保证 Bean 可被后处理
+        // 创建 BeanPostProcessor 类型的Bean，先创建已保证 Bean 可被后处理（也就是被替换）
         List<BeanPostProcessor> processors = this.beans.values().stream()
                 // 过滤出为 BeanPostProcessor 的 Bean 定义
                 .filter(this::isBeanPostProcessorDefinition)
@@ -118,7 +118,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 创建其他普通 Bean
         createNormalBeans();
 
-        // 此时所有 Bean 均被创建，且各个 Bean 的 instance 均已被设置
+        // 此时所有 Bean 均被创建，且各个 Bean 的 instance 均已被设置，且已被 BeanPostProcessor 处理
 
         // 通过字段和set方法注入依赖
         this.beans.values().forEach(this::injectBean);
@@ -594,7 +594,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 设置 Bean 定义的实例
         def.setInstance(instance);
 
-        // 调用 BeanPostProcessor 处理Bean
+        // 调用 BeanPostProcessor 处理Bean（也就是替换Bean）
+        // 一个Bean如果被Proxy替换，则依赖它的Bean应注入Proxy
+        // BeanDefinition 中的 instance 将被替换为 Proxy
         for (BeanPostProcessor processor : beanPostProcessors) {
             // Bean 定义的实例已经构建完成（但还未注入依赖）
             Object processed = processor.postProcessBeforeInitialization(def.getInstance(), def.getName());
@@ -611,7 +613,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     }
 
     /**
-     * 创建普通的Bean。该方法用于创建字段和方法级别的注入，即完成对依赖Bean的注入过程
+     * 创建普通的Bean。确保所有普通Bean都被创建
      */
     private void createNormalBeans() {
         // 获取所有未创建实例的 BeanDefinition 列表
@@ -638,9 +640,11 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      */
     private void injectBean(BeanDefinition def) {
         // 获取Bean实例，或被代理的原始实例
+        // 一个Bean如果被Proxy替换，如果要注入依赖，则应该注入到原始对象
+        // getProxiedInstance 用于获取原始的未经过代理的 Bean 实例
         Object beanInstance = getProxiedInstance(def);
         try {
-            // 为指定的Bean实例注入属性值，会传入def的def的声明类型
+            // 为指定的Bean实例注入属性值，会传入def的声明类型
             injectProperties(def, def.getBeanClass(), beanInstance);
         } catch (ReflectiveOperationException e) {
             throw new BeanCreationException(e);
@@ -648,16 +652,19 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     }
 
     /**
-     * 获取经过代理处理后的 Bean 实例。在依赖注入过程中，如果使用了代理（例如AOP），Bean可能会被代理修改。
-     * 该方法用于获取可能经过代理处理的Bean实例，或者获取原始的未经过代理的Bean实例。
+     * 获取原始 Bean实例 或未经过代理的 Bean 实例。
+     * 在依赖注入过程中，如果使用了代理（例如AOP），Bean可能会被代理修改。该方法用于获取原始的未经过代理的Bean实例。
+     * 该类处理代理改变了原始Bean但又希望注入到原始Bean的情况
      *
      * @param def 获取 Bean 实例的 BeanDefinition 对象
      * @return Bean实例，或被代理的原始实例
      */
     private Object getProxiedInstance(BeanDefinition def) {
+        // BeanDefinition 中的 instance 为 原始对象 或 Proxy
         Object beanInstance = def.getInstance();
         // 如果Proxy改变了原始Bean，又希望注入到原始Bean，则由BeanPostProcessor指定原始Bean
         List<BeanPostProcessor> reversedBeanPostProcessors = new ArrayList<>(this.beanPostProcessors);
+        // 倒序可提升性能
         Collections.reverse(reversedBeanPostProcessors);
         for (BeanPostProcessor beanPostProcessor : reversedBeanPostProcessors) {
             Object restoredInstance = beanPostProcessor.postProcessOnSetProperty(beanInstance, def.getName());
@@ -687,12 +694,14 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      */
     private void callMethod(Object beanInstance, Method method, String namedMethod) {
         if (method != null) {
+            // Bean为构造方法 @Component 构建，namedMethod为空
             try {
                 method.invoke(beanInstance);
             } catch (ReflectiveOperationException e) {
                 throw new BeanCreationException(e);
             }
         } else if (namedMethod != null) {
+            // Bean为工厂方法 @Bean 构建，method为空
             // 查找initMethod/destroyMethod="xyz"，注意是在实际类型中查找
             Method named = ClassUtils.getNamedMethod(beanInstance.getClass(), namedMethod);
             named.setAccessible(true);
@@ -726,9 +735,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     /**
      * 为指定的Bean实例注入属性值
      *
-     * @param def   Bean的定义信息
-     * @param clazz Bean实例的类类型
-     * @param bean  要进行属性注入的Bean实例
+     * @param def   Bean的定义
+     * @param clazz Bean的声明类型，或Bean的声明类型的父类
+     * @param bean  要进行属性注入的Bean实例，可能为原始未经代理的Bean实例
      * @throws ReflectiveOperationException 如果在注入属性值时发生反射操作异常，则抛出此异常
      */
     private void injectProperties(BeanDefinition def, Class<?> clazz, Object bean) throws ReflectiveOperationException {
@@ -740,6 +749,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             tryInjectProperties(def, clazz, bean, m);
         }
         // 在父类查找Field和Method并注入
+        // If this Class object represents either the Object class, an interface, a primitive type, or void, then null is returned
         Class<?> superClazz = clazz.getSuperclass();
         if (superClazz != null) {
             injectProperties(def, superClazz, bean);
@@ -750,14 +760,15 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * 尝试将属性或方法注入到Bean实例中
      *
      * @param def   Bean的定义
-     * @param clazz Bean的类
-     * @param bean  Bean实例
+     * @param clazz Bean的声明类型，或Bean的声明类型的父类
+     * @param bean  要进行属性注入的Bean实例，可能为原始未经代理的Bean实例
      * @param acc   可访问对象（属性或方法）
      * @throws ReflectiveOperationException 如果发生依赖不满足的异常，则抛出此异常
      */
     private void tryInjectProperties(BeanDefinition def, Class<?> clazz, Object bean, AccessibleObject acc) throws ReflectiveOperationException {
         Value value = acc.getAnnotation(Value.class);
         Autowired autowired = acc.getAnnotation(Autowired.class);
+        // 无需注入
         if (value == null && autowired == null) {
             return;
         }
@@ -800,10 +811,11 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             boolean required = autowired.value();
             // 依赖的Bean
             Object depends = name.isEmpty() ? findBean(accessibleType) : findBean(name, accessibleType);
-            // 检测required==true
+            // 检测required == true，注意 Bean 的应该存在，若不存在则报错
             if (required && depends == null) {
                 throw new UnsatisfiedDependencyException(String.format("Dependency bean not found when inject %s.%s for bean '%s': %s", clazz.getSimpleName(), accessibleName, def.getName(), def.getBeanClass().getName()));
             }
+            // 依赖的Bean不为空，需要设置
             if (depends != null) {
                 if (field != null) {
                     logger.atDebug().log("Field injection: {}.{} = {}", def.getBeanClass().getName(), accessibleName, depends);
@@ -820,13 +832,16 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     /**
      * 检查成员（字段或方法）是否可以注入到Bean实例中
      *
-     * @param m 要检查的成员（字段或方法）
+     * @param m 要检查的成员（属性或方法）
      */
     private void checkFieldOrMethod(Member m) {
+        // 获取属性或方法的修饰符
         int mod = m.getModifiers();
+        // 静态属性/方法，不能注入
         if (Modifier.isStatic(mod)) {
             throw new BeanDefinitionException("Cannot inject static field: " + m);
         }
+        // 常量属性/方法
         if (Modifier.isFinal(mod)) {
             if (m instanceof Field field) {
                 throw new BeanDefinitionException("Cannot inject final field: " + field);
@@ -916,7 +931,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                     method,
                     getOrder(method),
                     method.isAnnotationPresent(Primary.class),
+                    // 注解中指定找初始方法名称，若没有则返回null
                     bean.initMethod().isEmpty() ? null : bean.initMethod(),
+                    // 注解中指定找销毁方法名称，若没有则返回null
                     bean.destroyMethod().isEmpty() ? null : bean.destroyMethod(),
                     null,
                     null);
