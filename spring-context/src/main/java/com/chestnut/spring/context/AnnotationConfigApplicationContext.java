@@ -73,7 +73,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * 7. 调用所有 Bean 的初始化方法（如果有的话）。
      * 8. 使用日志记录器输出初始化的 Bean 的信息（仅在debug模式下）。
      * <p>
-     *请注意，该构造函数将初始化和管理整个应用程序的Bean生命周期，包括Bean的创建、初始化、依赖注入和销毁等过程。
+     * 请注意，该构造函数将初始化和管理整个应用程序的Bean生命周期，包括Bean的创建、初始化、依赖注入和销毁等过程。
      *
      * @param configClass      配置类，通常是带有@Configuration注解的类，其中包含了对Bean的定义和配置
      * @param propertyResolver 属性解析器，用于解析属性配置，可以用于配置Bean的属性值
@@ -643,7 +643,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 获取Bean实例，或被代理的原始实例
         // 一个Bean如果被Proxy替换，如果要注入依赖，则应该注入到原始对象
         // getProxiedInstance 用于获取原始的未经过代理的 Bean 实例
-        Object beanInstance = getProxiedInstance(def);
+        final Object beanInstance = getProxiedInstance(def);
         try {
             // 为指定的Bean实例注入属性值，会传入def的声明类型
             injectProperties(def, def.getBeanClass(), beanInstance);
@@ -683,7 +683,18 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * @param def 要进行初始化的 Bean定义
      */
     private void initBean(BeanDefinition def) {
-        callMethod(def.getInstance(), def.getInitMethod(), def.getInitMethodName());
+        // 获取Bean实例，或被代理的原始实例
+        final Object beanInstance = getProxiedInstance(def);
+        // 调用init方法
+        callMethod(beanInstance, def.getInitMethod(), def.getInitMethodName());
+        // 调用BeanPostProcessor.postProcessAfterInitialization():
+        beanPostProcessors.forEach(beanPostProcessor -> {
+            Object processedInstance = beanPostProcessor.postProcessAfterInitialization(def.getInstance(), def.getName());
+            if (processedInstance != def.getInstance()) {
+                logger.atDebug().log("BeanPostProcessor {} return different bean from {} to {}.", beanPostProcessor.getClass().getSimpleName(), def.getInstance().getClass().getName(), processedInstance.getClass().getName());
+                def.setInstance(processedInstance);
+            }
+        });
     }
 
     /**
