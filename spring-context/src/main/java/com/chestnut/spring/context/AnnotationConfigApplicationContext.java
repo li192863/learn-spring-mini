@@ -597,6 +597,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         // 调用 BeanPostProcessor 处理Bean（也就是替换Bean）
         // 一个Bean如果被Proxy替换，则依赖它的Bean应注入Proxy
         // BeanDefinition 中的 instance 将被替换为 Proxy
+        // 按beanPostProcessors的顺序依次进行替换
         for (BeanPostProcessor processor : beanPostProcessors) {
             // Bean 定义的实例已经构建完成（但还未注入依赖）
             Object processed = processor.postProcessBeforeInitialization(def.getInstance(), def.getName());
@@ -664,8 +665,8 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         Object beanInstance = def.getInstance();
         // 如果Proxy改变了原始Bean，又希望注入到原始Bean，则由BeanPostProcessor指定原始Bean
         List<BeanPostProcessor> reversedBeanPostProcessors = new ArrayList<>(this.beanPostProcessors);
-        // 倒序可提升性能
         Collections.reverse(reversedBeanPostProcessors);
+        // 按beanPostProcessors的逆序依次进行还原
         for (BeanPostProcessor beanPostProcessor : reversedBeanPostProcessors) {
             Object restoredInstance = beanPostProcessor.postProcessOnSetProperty(beanInstance, def.getName());
             if (restoredInstance != beanInstance) {
