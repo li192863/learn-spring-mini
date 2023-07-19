@@ -29,7 +29,7 @@ hs_err_pid*
 
 # IntelliJ project files
 .idea/
+**/target/
 *.iml
 out
 gen
-/.idea/
