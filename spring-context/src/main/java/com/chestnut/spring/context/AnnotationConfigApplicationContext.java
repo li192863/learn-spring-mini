@@ -58,7 +58,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     private Set<String> creatingBeanNames = new HashSet<>();
 
     /**
-     * 构造一个AnnotationConfigApplicationContext实例
+     * 创建一个AnnotationConfigApplicationContext实例
      * <p>
      * 该构造函数用于创建AnnotationConfigApplicationContext的实例，负责解析配置类，并自动创建和管理Java对象（Bean）的实例。
      * 它将配置类中的Bean定义通过扫描解析，自动发现和注册带有特定注解的Bean，实现了基于注解的轻量级依赖注入和控制反转。

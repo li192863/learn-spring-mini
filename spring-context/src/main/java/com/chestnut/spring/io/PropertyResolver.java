@@ -28,6 +28,10 @@ public class PropertyResolver {
      */
     private Map<Class<?>, Function<String, Object>> converters = new HashMap<>();
 
+    /**
+     * 创建一个PropertyResolver实例
+     * @param props 属性
+     */
     public PropertyResolver(Properties props) {
         // 将系统环境变量添加到属性映射中
         this.properties.putAll(System.getenv());

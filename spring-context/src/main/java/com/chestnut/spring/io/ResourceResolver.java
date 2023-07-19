@@ -37,6 +37,10 @@ public class ResourceResolver {
      */
     private String basePackage;
 
+    /**
+     * 创建一个ResourceResolver实例
+     * @param basePackage 基础包路径
+     */
     public ResourceResolver(String basePackage) {
         this.basePackage = basePackage;
     }
