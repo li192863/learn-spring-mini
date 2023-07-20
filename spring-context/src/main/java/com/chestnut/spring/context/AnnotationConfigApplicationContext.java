@@ -79,6 +79,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * @param propertyResolver 属性解析器，用于解析属性配置，可以用于配置Bean的属性值
      */
     public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
+        // 设置应用程序上下文
+        ApplicationContextUtils.setApplicationContext(this);
+
         // 将传入的属性解析器赋值给当前对象的 propertyResolver 成员变量
         this.propertyResolver = propertyResolver;
 
