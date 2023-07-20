@@ -23,7 +23,7 @@ public class BeanDefinitionException extends BeansException {
     }
 
     /**
-     * 使用指定的错误消息和原因创建一个BeanDefinitionException实例
+     * 使用指定的原因创建一个BeanDefinitionException实例
      *
      * @param cause 异常的原因
      */
