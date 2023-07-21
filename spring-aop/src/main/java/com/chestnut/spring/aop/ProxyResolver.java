@@ -18,7 +18,7 @@ import java.lang.reflect.InvocationHandler;
  **/
 public class ProxyResolver {
     /**
-     * 日志
+     * 日志记录器
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
     /**

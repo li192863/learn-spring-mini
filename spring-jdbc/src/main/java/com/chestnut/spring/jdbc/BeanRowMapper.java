@@ -22,7 +22,7 @@ import java.util.Map;
  **/
 public class BeanRowMapper<T> implements RowMapper<T> {
     /**
-     * 日志
+     * 日志记录器
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
     /**

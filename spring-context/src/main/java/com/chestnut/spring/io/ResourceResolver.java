@@ -29,7 +29,7 @@ import java.util.function.Function;
  **/
 public class ResourceResolver {
     /**
-     * 日志
+     * 日志记录器
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
     /**
