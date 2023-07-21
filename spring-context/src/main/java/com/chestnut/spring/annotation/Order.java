@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface Order {
     /**
-     * The order value
+     * The order value.
      */
     int value();
 }
