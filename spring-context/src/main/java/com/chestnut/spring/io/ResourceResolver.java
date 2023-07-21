@@ -31,7 +31,7 @@ public class ResourceResolver {
     /**
      * 日志
      */
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     /**
      * 基础包路径
      */

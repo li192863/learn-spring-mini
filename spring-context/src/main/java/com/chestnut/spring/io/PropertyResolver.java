@@ -18,7 +18,7 @@ public class PropertyResolver {
     /**
      * 日志
      */
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     /**
      * 属性
      */
