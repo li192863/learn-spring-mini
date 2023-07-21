@@ -23,6 +23,15 @@ public class UnsatisfiedDependencyException extends BeanCreationException {
     }
 
     /**
+     * 使用指定的原因创建一个UnsatisfiedDependencyException实例
+     *
+     * @param cause 异常的原因
+     */
+    public UnsatisfiedDependencyException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
      * 使用指定的错误消息和原因创建一个UnsatisfiedDependencyException实例
      *
      * @param message 错误消息
@@ -30,14 +39,5 @@ public class UnsatisfiedDependencyException extends BeanCreationException {
      */
     public UnsatisfiedDependencyException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    /**
-     * 使用指定的原因创建一个UnsatisfiedDependencyException实例
-     *
-     * @param cause 异常的原因
-     */
-    public UnsatisfiedDependencyException(Throwable cause) {
-        super(cause);
     }
 }

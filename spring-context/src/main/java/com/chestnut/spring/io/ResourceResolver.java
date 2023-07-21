@@ -31,12 +31,16 @@ public class ResourceResolver {
     /**
      * 日志
      */
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     /**
      * 基础包路径
      */
     private String basePackage;
 
+    /**
+     * 创建一个ResourceResolver实例
+     * @param basePackage 基础包路径
+     */
     public ResourceResolver(String basePackage) {
         this.basePackage = basePackage;
     }

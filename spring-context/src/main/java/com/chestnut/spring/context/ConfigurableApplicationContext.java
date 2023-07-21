@@ -49,8 +49,8 @@ public interface ConfigurableApplicationContext extends ApplicationContext {
     /**
      * 创建一个Bean，但不进行字段和方法级别的注入。如果创建的Bean不是Configuration或BeanPostProcessor，则在构造方法中注入的依赖Bean会自动创建。
      *
-     * @param def Bean的定义
+     * @param definition Bean的定义
      * @return Bean的实例
      */
-    Object createBeanAsEarlySingleton(BeanDefinition def);
+    Object createBeanAsEarlySingleton(BeanDefinition definition);
 }

@@ -58,7 +58,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     private Set<String> creatingBeanNames = new HashSet<>();
 
     /**
-     * 构造一个AnnotationConfigApplicationContext实例
+     * 创建一个AnnotationConfigApplicationContext实例
      * <p>
      * 该构造函数用于创建AnnotationConfigApplicationContext的实例，负责解析配置类，并自动创建和管理Java对象（Bean）的实例。
      * 它将配置类中的Bean定义通过扫描解析，自动发现和注册带有特定注解的Bean，实现了基于注解的轻量级依赖注入和控制反转。
@@ -79,6 +79,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * @param propertyResolver 属性解析器，用于解析属性配置，可以用于配置Bean的属性值
      */
     public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
+        // 设置应用程序上下文
+        ApplicationContextUtils.setApplicationContext(this);
+
         // 将传入的属性解析器赋值给当前对象的 propertyResolver 成员变量
         this.propertyResolver = propertyResolver;
 

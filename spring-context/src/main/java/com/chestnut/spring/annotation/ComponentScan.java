@@ -2,8 +2,8 @@ package com.chestnut.spring.annotation;
 
 import java.lang.annotation.*;
 
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ComponentScan {
     /**

@@ -12,7 +12,7 @@
     <modules>
         <module>../spring-parent</module>
         <module>../spring-context</module>
-<!--        <module>../spring-aop</module>-->
+        <module>../spring-aop</module>
 <!--        <module>../spring-jdbc</module>-->
 <!--        <module>../spring-web</module>-->
 <!--        <module>../spring-boot</module>-->

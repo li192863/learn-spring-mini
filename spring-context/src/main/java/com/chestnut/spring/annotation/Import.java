@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface Import {
     /**
-     * Class to be imported
+     * Class to be imported.
      */
     Class<?>[] value();
 }
