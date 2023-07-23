@@ -39,6 +39,7 @@ public class ResourceResolver {
 
     /**
      * 创建一个ResourceResolver实例
+     *
      * @param basePackage 基础包路径
      */
     public ResourceResolver(String basePackage) {
@@ -74,8 +75,8 @@ public class ResourceResolver {
      * @param collector       结果对象收集器
      * @param mapper          资源对象映射函数
      * @param <R>             结果对象的类型
-     * @throws URISyntaxException
-     * @throws IOException
+     * @throws URISyntaxException 如果在URI的语法错误
+     * @throws IOException        如果在处理发生I/O异常
      */
     private <R> void scan0(String basePackagePath, String path, List<R> collector, Function<Resource, R> mapper) throws URISyntaxException, IOException {
         logger.atDebug().log("scan path: {}", path);
@@ -122,8 +123,8 @@ public class ResourceResolver {
      *
      * @param basePackagePath 基础包路径
      * @param jarUri          JAR文件的URI
-     * @return
-     * @throws IOException
+     * @return 路径对象
+     * @throws IOException 如果在处理发生I/O异常
      */
     private Path jarUriToPath(String basePackagePath, URI jarUri) throws IOException {
         return FileSystems.newFileSystem(jarUri, Map.of()).getPath(basePackagePath);
@@ -132,8 +133,8 @@ public class ResourceResolver {
     /**
      * 将File URI转换为字符串
      *
-     * @param uri
-     * @return
+     * @param uri uri路径
+     * @return uri路径的字符串
      */
     private String uriToString(URI uri) {
         return URLDecoder.decode(uri.toString(), StandardCharsets.UTF_8);
@@ -142,13 +143,13 @@ public class ResourceResolver {
     /**
      * 扫描文件并将其转换为资源对象，然后将资源对象应用于映射函数，并将结果收集到列表中。
      *
-     * @param isJar
-     * @param base
-     * @param root
-     * @param collector
-     * @param mapper
-     * @param <R>
-     * @throws IOException
+     * @param isJar     是否在JAR文件中，用于判断资源的位置信息
+     * @param base      根路径
+     * @param root      根路径的Path对象
+     * @param collector 收集器，用于存储处理结果
+     * @param mapper    映射函数，用于将资源对象映射为需要的结果对象
+     * @param <R>       收集的类型
+     * @throws IOException 如果在处理发生I/O异常
      */
     private <R> void scanFile(boolean isJar, String base, Path root, List<R> collector, Function<Resource, R> mapper) throws IOException {
         String baseDir = removeTrailingSlash(base);
