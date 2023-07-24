@@ -4,9 +4,9 @@ import com.chestnut.spring.annotation.Autowired;
 import com.chestnut.spring.annotation.Bean;
 import com.chestnut.spring.annotation.Configuration;
 import com.chestnut.spring.annotation.Value;
-import com.chestnut.spring.jdbc.tx.DataSourceTransactionManager;
-import com.chestnut.spring.jdbc.tx.PlatformTransactionManager;
-import com.chestnut.spring.jdbc.tx.TransactionalBeanPostProcessor;
+import com.chestnut.spring.jdbc.transaction.DataSourceTransactionManager;
+import com.chestnut.spring.jdbc.transaction.PlatformTransactionManager;
+import com.chestnut.spring.jdbc.transaction.TransactionalBeanPostProcessor;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 

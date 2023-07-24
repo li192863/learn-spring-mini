@@ -1,4 +1,4 @@
-package com.chestnut.spring.jdbc.tx;
+package com.chestnut.spring.jdbc.transaction;
 
 import jakarta.annotation.Nullable;
 

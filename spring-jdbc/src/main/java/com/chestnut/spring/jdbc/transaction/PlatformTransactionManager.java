@@ -1,4 +1,4 @@
-package com.chestnut.spring.jdbc.tx;
+package com.chestnut.spring.jdbc.transaction;
 
 /**
  * 事务管理器接口

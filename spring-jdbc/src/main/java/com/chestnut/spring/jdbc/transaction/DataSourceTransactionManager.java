@@ -1,4 +1,4 @@
-package com.chestnut.spring.jdbc.tx;
+package com.chestnut.spring.jdbc.transaction;
 
 import com.chestnut.spring.exception.TransactionException;
 import org.slf4j.Logger;
