@@ -1,6 +1,6 @@
 package com.chestnut.spring.annotation;
 
-import com.chestnut.spring.web.utils.WebUtils;
+import com.chestnut.spring.web.WebMvcConfiguration;
 
 import java.lang.annotation.*;
 
@@ -16,5 +16,5 @@ public @interface RequestParam {
     /**
      * Parameter default value.
      */
-    String defaultValue() default WebUtils.DEFAULT_PARAM_VALUE;
+    String defaultValue() default WebMvcConfiguration.DEFAULT_PARAM_VALUE;
 }

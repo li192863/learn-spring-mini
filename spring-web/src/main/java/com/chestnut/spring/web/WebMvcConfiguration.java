@@ -17,12 +17,16 @@ import java.util.Objects;
 @Configuration
 public class WebMvcConfiguration {
     /**
+     * 默认参数值
+     */
+    public static final String DEFAULT_PARAM_VALUE = "\0\t\0\t\0";
+    /**
      * Servlet上下文，用于获取资源信息
      */
     private static ServletContext servletContext = null;
 
     /**
-     * 设置Servlet上下文，由监听器设置
+     * 设置Servlet上下文，通常由监听器设置
      *
      * @param ctx Servlet上下文
      */
