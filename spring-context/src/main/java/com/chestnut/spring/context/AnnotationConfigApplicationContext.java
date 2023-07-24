@@ -763,7 +763,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         for (Method m : clazz.getDeclaredMethods()) {
             tryInjectProperties(def, clazz, bean, m);
         }
-        // 在父类查找Field和Method并注入
+        // 在父类查找 Field 和 Method 并注入
         // If this Class object represents either the Object class, an interface, a primitive type, or void, then null is returned
         Class<?> superClazz = clazz.getSuperclass();
         if (superClazz != null) {
