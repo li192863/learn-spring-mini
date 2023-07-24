@@ -29,7 +29,7 @@ public abstract class BeforeInvocationHandlerAdapter implements InvocationHandle
      * @throws Throwable invoke过程中抛出异常
      */
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // 实际方法调用前执行的逻辑
         before(proxy, method, args);
         // 原始方法
