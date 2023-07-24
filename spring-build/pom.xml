@@ -15,7 +15,7 @@
         <module>../spring-aop</module>
         <module>../spring-jdbc</module>
         <module>../spring-web</module>
-<!--        <module>../spring-boot</module>-->
+        <module>../spring-boot</module>
     </modules>
 
 </project>
