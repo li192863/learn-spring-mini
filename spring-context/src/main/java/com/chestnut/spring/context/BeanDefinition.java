@@ -291,7 +291,7 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
     /**
      * 返回BeanDefinition对象的字符串表示形式
      *
-     * @return 返回BeanDefinition对象的字符串表示形式
+     * @return BeanDefinition对象的字符串表示形式
      */
     @Override
     public String toString() {

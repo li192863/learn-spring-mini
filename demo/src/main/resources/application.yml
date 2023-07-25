@@ -1,0 +1,13 @@
+server:
+  port: ${PORT:8080}
+
+app:
+  title: Hello Application
+  version: 1.0
+
+spring:
+  datasource:
+    url: jdbc:sqlite:E:/Projects/Project_Java/spring-mini/demo/demo.db
+    driver-class-name: org.sqlite.JDBC
+    username: sa
+    password: 

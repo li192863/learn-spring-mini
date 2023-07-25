@@ -139,7 +139,7 @@ public class AnnotationProxyBeanPostProcessor<A extends Annotation> implements B
         Type[] types = pt.getActualTypeArguments();
         // 检查实际类型参数数组的长度
         if (types.length != 1) {
-            throw new IllegalArgumentException("Class " + getClass().getName() + " does not have parameterized type.");
+            throw new IllegalArgumentException("Class " + getClass().getName() + " has more than 1 parameterized types.");
         }
         // 获取实际类型参数数组的第一个元素，也就是泛型参数的类型信息
         Type r = types[0];

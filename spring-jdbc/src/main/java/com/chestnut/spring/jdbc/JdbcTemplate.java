@@ -1,7 +1,7 @@
 package com.chestnut.spring.jdbc;
 
 import com.chestnut.spring.exception.DataAccessException;
-import com.chestnut.spring.jdbc.tx.TransactionalUtils;
+import com.chestnut.spring.jdbc.transaction.TransactionalUtils;
 
 import javax.sql.DataSource;
 import java.sql.*;
