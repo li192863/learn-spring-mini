@@ -20,7 +20,8 @@ public class Main {
         String jarFile = Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
         boolean isJarFile = jarFile.endsWith(".war") || jarFile.endsWith(".jar");
         // 定位webapp根目录:
-        String webDir = isJarFile ? "tmp-webapp" : "demo/src/main/webapp";
+        String moduleDir = Paths.get(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().getParent().toString() + "/";
+        String webDir = moduleDir + (isJarFile ? "tmp-webapp" : "src/main/webapp");
         if (isJarFile) {
             // 解压到tmp-webapp:
             Path baseDir = Paths.get(webDir).normalize().toAbsolutePath();
@@ -49,7 +50,7 @@ public class Main {
                 }
             }));
         }
-        String baseDir = isJarFile ? "tmp-webapp" : "demo/target/classes";
+        String baseDir = moduleDir + (isJarFile ? "tmp-webapp" : "target/classes");
         SpringApplication.run(webDir, baseDir, HelloConfiguration.class, args);
     }
 }

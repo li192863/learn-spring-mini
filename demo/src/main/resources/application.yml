@@ -7,7 +7,7 @@ app:
 
 spring:
   datasource:
-    url: jdbc:sqlite:test.db
+    url: jdbc:sqlite:E:/Projects/Project_Java/spring-mini/demo/demo.db
     driver-class-name: org.sqlite.JDBC
     username: sa
     password: 
