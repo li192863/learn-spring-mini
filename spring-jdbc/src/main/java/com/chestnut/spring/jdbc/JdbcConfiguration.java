@@ -1,5 +1,6 @@
 package com.chestnut.spring.jdbc;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.chestnut.spring.annotation.Autowired;
 import com.chestnut.spring.annotation.Bean;
 import com.chestnut.spring.annotation.Configuration;
@@ -7,8 +8,7 @@ import com.chestnut.spring.annotation.Value;
 import com.chestnut.spring.jdbc.transaction.DataSourceTransactionManager;
 import com.chestnut.spring.jdbc.transaction.PlatformTransactionManager;
 import com.chestnut.spring.jdbc.transaction.TransactionalBeanPostProcessor;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+
 
 import javax.sql.DataSource;
 
@@ -43,24 +43,22 @@ public class JdbcConfiguration {
             @Value("${spring.datasource.minimum-pool-size:1}") int minimumPoolSize,
             @Value("${spring.datasource.connection-timeout:30000}") int connTimeout
     ) {
-        // 创建Hikari连接池配置对象
-        HikariConfig config = new HikariConfig();
-        // 设置自动提交事务为false，即使用手动提交事务
-        config.setAutoCommit(false);
+        // 创建Druid连接池对象
+        DruidDataSource dataSource = new DruidDataSource();
         // 设置数据库连接URL、用户名和密码
-        config.setJdbcUrl(url);
-        config.setUsername(username);
-        config.setPassword(password);
-        // 如果指定了数据库驱动类名，则设置驱动类名（若未指定，连接池会根据URL自动识别驱动）
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        // 如果指定了数据库驱动类名，则设置驱动类名（Druid会自动识别驱动，无需显式设置）
         if (driver != null) {
-            config.setDriverClassName(driver);
+            dataSource.setDriverClassName(driver);
         }
         // 设置连接池的最大连接数和最小空闲连接数
-        config.setMaximumPoolSize(maximumPoolSize);
-        config.setMinimumIdle(minimumPoolSize);
+        dataSource.setMaxActive(maximumPoolSize);
+        dataSource.setMinIdle(minimumPoolSize);
         // 设置连接超时时间
-        config.setConnectionTimeout(connTimeout);
-        return new HikariDataSource(config);
+        dataSource.setConnectTimeout(connTimeout);
+        return dataSource;
     }
 
     /**

@@ -2,14 +2,13 @@ package com.chestnut.spring.jdbc.without.tx;
 
 import javax.sql.DataSource;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.chestnut.spring.annotation.Autowired;
 import com.chestnut.spring.annotation.Bean;
 import com.chestnut.spring.annotation.ComponentScan;
 import com.chestnut.spring.annotation.Configuration;
 import com.chestnut.spring.annotation.Value;
 import com.chestnut.spring.jdbc.JdbcTemplate;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 @ComponentScan
 @Configuration
@@ -26,18 +25,22 @@ public class JdbcWithoutTxApplication {
             @Value("${spring.datasource.minimum-pool-size:1}") int minimumPoolSize, //
             @Value("${spring.datasource.connection-timeout:30000}") int connTimeout //
     ) {
-        var config = new HikariConfig();
-        config.setAutoCommit(false);
-        config.setJdbcUrl(url);
-        config.setUsername(username);
-        config.setPassword(password);
+        // 创建Druid连接池对象
+        DruidDataSource dataSource = new DruidDataSource();
+        // 设置数据库连接URL、用户名和密码
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        // 如果指定了数据库驱动类名，则设置驱动类名（Druid会自动识别驱动，无需显式设置）
         if (driver != null) {
-            config.setDriverClassName(driver);
+            dataSource.setDriverClassName(driver);
         }
-        config.setMaximumPoolSize(maximumPoolSize);
-        config.setMinimumIdle(minimumPoolSize);
-        config.setConnectionTimeout(connTimeout);
-        return new HikariDataSource(config);
+        // 设置连接池的最大连接数和最小空闲连接数
+        dataSource.setMaxActive(maximumPoolSize);
+        dataSource.setMinIdle(minimumPoolSize);
+        // 设置连接超时时间
+        dataSource.setConnectTimeout(connTimeout);
+        return dataSource;
     }
 
     @Bean

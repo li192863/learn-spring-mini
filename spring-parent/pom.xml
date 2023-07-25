@@ -23,7 +23,7 @@
 
         <bytebuddy.version>1.14.2</bytebuddy.version>
         <freemarker.version>2.3.32</freemarker.version>
-        <hikaricp.version>5.0.1</hikaricp.version>
+        <druid.version>1.2.18</druid.version>
         <jackson.version>2.14.2</jackson.version>
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
@@ -63,9 +63,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.zaxxer</groupId>
-                <artifactId>HikariCP</artifactId>
-                <version>${hikaricp.version}</version>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
             </dependency>
 
             <dependency>
