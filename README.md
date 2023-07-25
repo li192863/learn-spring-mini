@@ -1,7 +1,3 @@
-# spring-mini
-精简版Spring框架实现
-
-实现：步骤参考[廖雪峰](https://www.liaoxuefeng.com/wiki/1539348902182944)，有更改
 # Spring Mini Framework
 
 ![logo](logo.png)
@@ -16,4 +12,4 @@ Components of Spring Mini Framework:
 - spring-web: Support web application with Servlet 6.0;
 - spring-boot: Run Summer application simple and quick like Spring Boot.
 
-Reference: [Tutorial](https://www.liaoxuefeng.com/wiki/1539348902182944), Changes have been made.
+Reference: [Tutorial](https://www.liaoxuefeng.com/wiki/1539348902182944). Changes have been made.
