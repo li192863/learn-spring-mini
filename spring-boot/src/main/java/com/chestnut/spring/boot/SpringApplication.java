@@ -101,7 +101,7 @@ public class SpringApplication {
         int port = propertyResolver.getProperty("${server.port:8080}", int.class);
         logger.info("starting Tomcat at port {}...", port);
         Tomcat tomcat = new Tomcat();
-        tomcat.setBaseDir("/demo");
+        tomcat.setBaseDir(Paths.get(System.getProperty("user.home")).resolve(".tomcat").toString());
         tomcat.setPort(port);
         tomcat.getConnector().setThrowOnFailure(true);
         Context ctx = tomcat.addWebapp("", new File(webDir).getAbsolutePath());
